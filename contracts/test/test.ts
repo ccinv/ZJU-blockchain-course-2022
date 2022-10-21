@@ -18,9 +18,9 @@ describe("Test", function () {
   }
 
   describe("Deployment", function () {
-    it("Should return hello world", async function () {
-      const { studentSocietyDAO } = await loadFixture(deployFixture);
-      expect(await studentSocietyDAO.helloworld()).to.equal("hello world");
-    });
+    // it("Should return hello world", async function () {
+    //   const { studentSocietyDAO } = await loadFixture(deployFixture);
+    //   expect(await studentSocietyDAO.helloworld()).to.equal("hello world");
+    // });
   });
 });
