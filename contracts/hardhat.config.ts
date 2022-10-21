@@ -6,14 +6,14 @@ const config: HardhatUserConfig = {
   networks: {
     ganache: {
       // rpc url, change it according to your ganache configuration
-      url: 'http://localhost:8545',
+      url: 'http://172.29.240.1:7545',
       // the private key of signers, change it according to your ganache user
       accounts: [
-        '0x66802bc37d3cfb38ff282b24d420280b5616554388432bd48457b65b0208abfb',
-        '0x8f01ac58c592328b827eeb73a0f024475133088038845a29ac16c31a6c761927',
-        '0xa78dd2aa256882a25fe5b929575f6f70c6e8b1872b22c1925274dee71596d940',
-        '0x66e3792dc624ecafb28cc744762d63c6016ed29bc5c5bdf409ade7fc112a52ec',
-        '0x172a483415c5e119f1ea336d44646572ac34a088e7bc2884f8e1f83da4cb304a'
+        '0x0fde2b70556c575c56b96b38921d6ed0944efe18245a551edceae4dc04340419',
+        '0x6a640c6a9b6667a99ad48eaf49683b7546d4c142f12f99b9a43120e9e1be0a78',
+        '0x7e52723998ace1d5742b2348ea3bcbd77b2d17e9e5586905ab02c5601755c301',
+        '0x35e4fa83e1aab75835c31032854b5ecf949f1993de3712adab64737f20268779',
+        '0x579bc6f98fae26fa10b802a7565707c7eb036a04aa873410242fb1962417f8cc'
       ]
     },
   },
