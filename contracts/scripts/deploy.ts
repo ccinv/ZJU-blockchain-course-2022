@@ -6,6 +6,10 @@ async function main() {
   await studentSocietyDAO.deployed();
 
   console.log(`StudentSocietyDAO deployed to ${studentSocietyDAO.address}`);
+
+  
+  const SocietyCredit = await studentSocietyDAO.studentERC20()
+  console.log(`SocietyCredit contract has been deployed successfully in ${SocietyCredit}`)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

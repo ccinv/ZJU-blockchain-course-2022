@@ -26,8 +26,8 @@ contract StudentSocietyDAO {
         uint32 no;  // current number of tokens say no
     }
 
-    SocietyCredit studentERC20;
-    mapping(uint32 => Proposal) proposals; // A map from proposal index to proposal
+    SocietyCredit public studentERC20;
+    mapping(uint32 => Proposal) public proposals; // A map from proposal index to proposal
 
 
     constructor() {
