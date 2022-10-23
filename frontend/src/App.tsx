@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from 'antd';
+import { Button, Input } from 'antd';
 import { web3, SocietyCreditContract, StudentSocietyDAOContract } from "./utils/contracts/contracts";
 import './App.css';
 
@@ -9,7 +9,10 @@ const GanacheTestChainRpcUrl = 'http://127.0.0.1:7545'
 
 function App() {
     const [account, setAccount] = useState('')
+    const [voteString, setVoteString] = useState('')
     const [accountBalance, setAccountBalance] = useState(0)
+    const [voteAmount, setVoteAmount] = useState(0)
+
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
         // 查看window对象里是否存在ethereum（metamask安装后注入的）对象
@@ -71,25 +74,6 @@ function App() {
     }
 
     useEffect(() => {
-        const getSocietyCreditContractInfo = async () => {
-            if (StudentSocietyDAOContract) {
-                // const ma = await SocietyCreditContract.methods.manager().call()
-                // setManagerAccount(ma)
-                // const pn = await SocietyCreditContract.methods.getPlayerNumber().call()
-                // setPlayerNumber(pn)
-                // const pa = await SocietyCreditContract.methods.PLAY_AMOUNT().call()
-                // setPlayAmount(pa)
-                // const ta = await SocietyCreditContract.methods.totalAmount().call()
-                // setTotalAmount(ta)
-            } else {
-                alert('Contract not exists.')
-            }
-        }
-
-        getSocietyCreditContractInfo()
-    }, [])
-
-    useEffect(() => {
         const getAccountInfo = async () => {
             if (SocietyCreditContract) {
                 const ab = await SocietyCreditContract.methods.balanceOf(account).call()
@@ -125,16 +109,46 @@ function App() {
         }
     }
 
-  return (
+    const onGiveProposal = async () => {
+        if(account === '') {
+            alert('You have not connected wallet yet.')
+            return
+        }
+
+        if (SocietyCreditContract && StudentSocietyDAOContract) {
+            try {
+                await SocietyCreditContract.methods.approve(StudentSocietyDAOContract.options.address, voteAmount).send({
+                    from: account
+                })
+
+                await StudentSocietyDAOContract.methods.newProposal(voteAmount, voteString, 10000000).send({
+                    from: account
+                })
+
+                alert('You have voted successfully')
+            } catch (error: any) {
+                alert(error.message)
+            }
+        } else {
+            alert('Contract not exists.')
+        }
+    }
+
+    return (
       <div className='container'>
           <div className='main'>
-              <h1>社团组织治理</h1>
-              <Button onClick={onClaimTokenAirdrop}>领取学生币空投</Button>
-            <div className='account'>
+                <h1>社团组织治理</h1>
+                <Button onClick={onClaimTokenAirdrop}>领取学生币空投</Button>
+                <div className='give'>
+                    <Input type="number" onChange={(e)=>setVoteAmount(Number(e.target.value))} placeholder="300" />
+                    <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="AAA" />
+                    <Button onClick={onGiveProposal}>提出建议</Button>
+                </div>
+                <div className='account'>
                 {account === '' && <Button onClick={onClickConnectWallet}>连接钱包</Button>}
                 <div>当前用户：{account === '' ? '无用户连接' : account}</div>
                 <div>当前用户拥有学生币数量：{account === '' ? 0 : accountBalance}</div>
-            </div>
+                </div>
           </div>
       </div>
   );

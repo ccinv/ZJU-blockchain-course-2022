@@ -21,3 +21,4 @@ const StudentSocietyDAOContract = new web3.eth.Contract(StudentSocietyDAOABI, St
 
 // 导出web3实例和其它部署的合约
 export { web3, SocietyCreditContract, StudentSocietyDAOContract }
+ 

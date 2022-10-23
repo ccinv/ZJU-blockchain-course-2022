@@ -75,4 +75,20 @@ contract StudentSocietyDAO {
             proposals[index].no += amount / costPerVote;
         }
     }
+
+    function getProposalNum() external view returns (uint256) {
+        return proposalNum;
+    }
+
+    function getStartTime(uint32 index) external view returns (uint256) {
+        return proposals[index].startTime;
+    }
+
+    function getDuration(uint32 index) external view returns (uint256) {
+        return proposals[index].duration;
+    }
+
+    function getName(uint32 index) external view returns (string memory){
+        return proposals[index].name;
+    }
 }
