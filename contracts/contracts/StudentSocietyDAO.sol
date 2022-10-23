@@ -91,4 +91,12 @@ contract StudentSocietyDAO {
     function getName(uint32 index) external view returns (string memory){
         return proposals[index].name;
     }
+
+    function getYes(uint32 index) external view returns (uint32){
+        return proposals[index].yes;
+    }
+
+    function getNo(uint32 index) external view returns (uint32){
+        return proposals[index].no;
+    }
 }

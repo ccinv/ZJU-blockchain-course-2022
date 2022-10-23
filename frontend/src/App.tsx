@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Button, Input } from 'antd';
+import { Button, Input, List } from 'antd';
 import { web3, SocietyCreditContract, StudentSocietyDAOContract } from "./utils/contracts/contracts";
 import './App.css';
 
 const GanacheTestChainId = '0x539'
 const GanacheTestChainName = 'Ganache Test Chain'
 const GanacheTestChainRpcUrl = 'http://127.0.0.1:7545'
+interface Proposal {
+    name: string;
+    startTime: number;
+    duration: number;
+    yes:number;
+    no:number;
+}
 
 function App() {
     const [account, setAccount] = useState('')
     const [voteString, setVoteString] = useState('')
     const [accountBalance, setAccountBalance] = useState(0)
     const [voteAmount, setVoteAmount] = useState(0)
+    const [proposalAmount, setProposalAmount] = useState(0)
+    const [proposalList, setProposalList] = useState<Proposal[]>([])
 
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
@@ -134,6 +143,34 @@ function App() {
         }
     }
 
+    useEffect(() => {
+        // 获取总共的提案数目
+        const updateProposalAmount = async () => {
+            const pa = await StudentSocietyDAOContract.methods.getProposalNum().call()
+            setProposalAmount(pa)
+        }
+
+      updateProposalAmount()
+    }, [])
+
+    useEffect(() => {
+        // 获取提案详细信息
+        const updateProposalList = async () => {
+            let ret: Proposal[] = []
+            for (var i = 1; i <= proposalAmount; ++i) {
+                const name = await StudentSocietyDAOContract.methods.getName(i).call()
+                const yes = await StudentSocietyDAOContract.methods.getYes(i).call()
+                const no = await StudentSocietyDAOContract.methods.getNo(i).call()
+                const startTime = await StudentSocietyDAOContract.methods.getStartTime(i).call()
+                const duration = await StudentSocietyDAOContract.methods.getDuration(i).call()
+                ret.push({name: name, startTime: startTime, duration: duration, yes: yes, no:no})
+            }
+            setProposalList(ret)
+        }
+
+      updateProposalList()
+    }, [proposalAmount])
+
     return (
       <div className='container'>
           <div className='main'>
@@ -145,9 +182,27 @@ function App() {
                     <Button onClick={onGiveProposal}>提出建议</Button>
                 </div>
                 <div className='account'>
-                {account === '' && <Button onClick={onClickConnectWallet}>连接钱包</Button>}
-                <div>当前用户：{account === '' ? '无用户连接' : account}</div>
-                <div>当前用户拥有学生币数量：{account === '' ? 0 : accountBalance}</div>
+                    {account === '' && <Button onClick={onClickConnectWallet}>连接Metamask钱包</Button>}
+                    <div>当前用户：{account === '' ? '无用户连接' : account}</div>
+                    <div>当前用户拥有学生币数量：{account === '' ? 0 : accountBalance}</div>
+                </div>
+                <div className='proposals'>
+                    <div>当前总共建议数：{account === '' ? 0 : proposalAmount}</div>
+                    <List
+                      size="large"
+                      header={<div></div>}
+                      footer={<div></div>}
+                      bordered
+                      dataSource={proposalList}
+                      renderItem={item => (
+                        <List.Item>
+                            <p>{item.name}</p>
+                            <p>{item.startTime}</p>
+                            <p>{item.duration}</p>
+                            <p>{item.yes}</p>
+                            <p>{item.no}</p>
+                        </List.Item>)}
+                    />
                 </div>
           </div>
       </div>
