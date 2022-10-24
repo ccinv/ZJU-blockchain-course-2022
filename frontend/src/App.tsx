@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Button, Input, List } from 'antd';
+import {
+    FieldTimeOutlined, ArrowRightOutlined,
+} from '@ant-design/icons';
+import { useEffect, useState, createElement } from 'react';
+import { Button, Input, List, Divider, Space } from 'antd';
 import { web3, SocietyCreditContract, StudentSocietyDAOContract } from "./utils/contracts/contracts";
+// import * as moment from "momnent"
 import './App.css';
 
 const GanacheTestChainId = '0x539'
@@ -15,6 +19,15 @@ interface Proposal {
     no:number;
 }
 
+const IconText = ({ start, duration }: { start: number; duration:number }) => (
+  <Space>
+    {createElement(FieldTimeOutlined)}
+    {new Date(start * 1000).toLocaleString()}
+    {createElement(ArrowRightOutlined)}
+    {new Date(start * 1000 + duration * 1000).toLocaleString()}
+  </Space>
+);
+
 function App() {
     const [account, setAccount] = useState('')
     const [voteString, setVoteString] = useState('')
@@ -25,6 +38,7 @@ function App() {
     const [duration, setDuration] = useState(0)
     const [costPerVote, setCostPerVote] = useState(0)
     const [proposalInitCost, setProposalInitCost] = useState(0)
+    const [chainMod, setChainMod] = useState(0)
 
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
@@ -87,18 +101,6 @@ function App() {
     }
 
     useEffect(() => {
-        const getAccountInfo = async () => {
-            if (SocietyCreditContract) {
-                const ab = await SocietyCreditContract.methods.balanceOf(account).call()
-                setAccountBalance(ab)
-            } else {
-                alert('Contract not exists.')
-            }
-        }
-
-        if(account !== '') {
-            getAccountInfo()
-        }
     }, [account])
 
     const onClaimTokenAirdrop = async () => {
@@ -113,6 +115,7 @@ function App() {
                     from: account
                 })
                 alert('You have claimed ZJU Token.')
+                setChainMod(1 - chainMod)
             } catch (error: any) {
                 alert(error.message)
             }
@@ -138,7 +141,8 @@ function App() {
                     from: account
                 })
 
-                alert('You have voted successfully')
+                alert('You have advanced a proposal successfully')
+                setChainMod(1 - chainMod)
             } catch (error: any) {
                 alert(error.message)
             }
@@ -159,6 +163,7 @@ function App() {
                 })
 
                 alert('You have voted successfully')
+                setChainMod(1 - chainMod)
             } catch (error: any) {
                 alert(error.message)
             }            
@@ -174,19 +179,33 @@ function App() {
 
         updateProposalAmount()
 
-        const updateConsts() = async() => {
+        const updateConsts = async() => {
             const a = await StudentSocietyDAOContract.methods.getCostPerVote().call()
             const b = await StudentSocietyDAOContract.methods.getProposalInitCost().call()
             setCostPerVote(a)
             setProposalInitCost(b)
         }
-    }, [])
+        updateConsts()
 
-    useEffect(() => {
+        const getAccountInfo = async () => {
+            if (SocietyCreditContract) {
+                const ab = await SocietyCreditContract.methods.balanceOf(account).call()
+                setAccountBalance(ab)
+            } else {
+                alert('Contract not exists.')
+            }
+        }
+
+        if(account !== '') {
+            getAccountInfo()
+        }
+    }, [chainMod, account])
+
+    useEffect(()=> {
         // 获取提案详细信息
         const updateProposalList = async () => {
             let ret: Proposal[] = []
-            for (var i = 1; i <= proposalAmount; ++i) {
+            for (var i = proposalAmount; i >= 1; --i) {
                 const name = await StudentSocietyDAOContract.methods.getName(i).call()
                 const yes = await StudentSocietyDAOContract.methods.getYes(i).call()
                 const no = await StudentSocietyDAOContract.methods.getNo(i).call()
@@ -197,38 +216,52 @@ function App() {
             setProposalList(ret)
         }
 
-      updateProposalList()
+        updateProposalList()
     }, [proposalAmount])
 
+    const isExpired = (item: Proposal) =>{
+        return new Date().getTime() >= (BigInt(item.startTime) + BigInt(item.duration)) * BigInt(1000)
+    }
+
     return (
-      <div className='container'>
+      <div className='App'>
           <div className='main'>
                 <h1>社团组织治理</h1>
-                <Button onClick={onClaimTokenAirdrop}>领取学生币空投</Button>
-                <div className='give'>
-                    <Input type="number" onChange={(e)=>setVoteAmount(Number(e.target.value))} placeholder="300" />
-                    <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="AAA" />
-                    <Input onChange={(e)=>setDuration(Number(e.target.value))} placeholder="1000" />
-                    <Button onClick={onGiveProposal}>提出建议</Button>
-                </div>
                 <div className='account'>
                     {account === '' && <Button onClick={onClickConnectWallet}>连接Metamask钱包</Button>}
                     <div>当前用户：{account === '' ? '无用户连接' : account}</div>
                     <div>当前用户拥有学生币数量：{account === '' ? 0 : accountBalance}</div>
+                    <Button onClick={onClaimTokenAirdrop}>领取学生币空投</Button>
                 </div>
+                <Divider />
+                <div className='give'>
+                    <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                    <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="建议内容" />
+                    <Space>
+                    <Input type="number" onChange={(e)=>setVoteAmount(Number(e.target.value))} suffix="tokens" placeholder="投入的代币数" />
+                    <Input onChange={(e)=>setDuration(Number(e.target.value))} suffix="s" placeholder="有效时间" />
+                    <Button onClick={onGiveProposal}>提出建议</Button>
+                    </Space>
+                    </Space>
+                </div>
+                <Divider />
                 <div className='proposals'>
                     <div>当前总共建议数：{account === '' ? 0 : proposalAmount}</div>
                     <List
                       size="large"
-                      header={<div></div>}
-                      footer={<div></div>}
                       bordered
                       dataSource={proposalList}
                       renderItem={item => (
                         <List.Item
-                          actions={[<Button onClick={onVote(true, item.index)}>支持</Button>,<Button onClick={onVote(false, item.index)}>反对</Button>]}
+                          actions={[<Button onClick={onVote(true, item.index)}>支持({item.yes})</Button>,<Button onClick={onVote(false, item.index)}>反对({item.no})</Button>]}                
+                          style={{
+                            backgroundColor: !isExpired(item) ? "#fedcbd" : ((item.yes>item.no)?"#d71345":"#bed742")
+                          }}
                         >
-                            <p>{item.name} {item.startTime} {item.duration} {item.yes} {item.no}</p>
+                            <List.Item.Meta
+                              title={item.name}
+                              description={<IconText start={item.startTime} duration={item.duration}/>}
+                            />
                         </List.Item>)}
                     />
                 </div>

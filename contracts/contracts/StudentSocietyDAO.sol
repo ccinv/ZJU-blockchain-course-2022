@@ -100,6 +100,10 @@ contract StudentSocietyDAO {
         return proposals[index].no;
     }
 
+    function isExpired(uint32 index) external view returns (bool){
+        return block.timestamp >= proposals[index].startTime + proposals[index].duration;
+    }
+
     function getCostPerVote() external pure returns (uint32){
         return costPerVote;
     }
