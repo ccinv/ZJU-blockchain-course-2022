@@ -99,4 +99,12 @@ contract StudentSocietyDAO {
     function getNo(uint32 index) external view returns (uint32){
         return proposals[index].no;
     }
+
+    function getCostPerVote() external pure returns (uint32){
+        return costPerVote;
+    }
+
+    function getProposalInitCost() external pure returns (uint32){
+        return proposalInitCost;
+    }
 }

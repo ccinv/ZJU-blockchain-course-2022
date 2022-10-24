@@ -51,5 +51,5 @@
 
 ## 参考内容
 
-- 课程的参考[DEMOs](https://github.com/LBruyne/blockchain-course-demos)。
-
+- 课程Demo https://github.com/LBruyne/blockchain-course-demos
+- Decentralized Autonomous Organization (DAO) Framework https://github.com/blockchainsllc/DAO

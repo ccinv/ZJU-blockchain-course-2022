@@ -7,6 +7,7 @@ const GanacheTestChainId = '0x539'
 const GanacheTestChainName = 'Ganache Test Chain'
 const GanacheTestChainRpcUrl = 'http://127.0.0.1:7545'
 interface Proposal {
+    index: number;
     name: string;
     startTime: number;
     duration: number;
@@ -21,6 +22,9 @@ function App() {
     const [voteAmount, setVoteAmount] = useState(0)
     const [proposalAmount, setProposalAmount] = useState(0)
     const [proposalList, setProposalList] = useState<Proposal[]>([])
+    const [duration, setDuration] = useState(0)
+    const [costPerVote, setCostPerVote] = useState(0)
+    const [proposalInitCost, setProposalInitCost] = useState(0)
 
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
@@ -130,7 +134,7 @@ function App() {
                     from: account
                 })
 
-                await StudentSocietyDAOContract.methods.newProposal(voteAmount, voteString, 10000000).send({
+                await StudentSocietyDAOContract.methods.newProposal(voteAmount, voteString, duration).send({
                     from: account
                 })
 
@@ -143,6 +147,24 @@ function App() {
         }
     }
 
+    const onVote = (yesno: boolean, index: number) => {
+        return async (e: any) => {
+            try {
+                await SocietyCreditContract.methods.approve(StudentSocietyDAOContract.options.address, costPerVote).send({
+                    from: account
+                })
+
+                await StudentSocietyDAOContract.methods.vote(index, yesno, costPerVote).send({
+                    from: account
+                })
+
+                alert('You have voted successfully')
+            } catch (error: any) {
+                alert(error.message)
+            }            
+        }
+    }
+
     useEffect(() => {
         // 获取总共的提案数目
         const updateProposalAmount = async () => {
@@ -150,7 +172,14 @@ function App() {
             setProposalAmount(pa)
         }
 
-      updateProposalAmount()
+        updateProposalAmount()
+
+        const updateConsts() = async() => {
+            const a = await StudentSocietyDAOContract.methods.getCostPerVote().call()
+            const b = await StudentSocietyDAOContract.methods.getProposalInitCost().call()
+            setCostPerVote(a)
+            setProposalInitCost(b)
+        }
     }, [])
 
     useEffect(() => {
@@ -163,7 +192,7 @@ function App() {
                 const no = await StudentSocietyDAOContract.methods.getNo(i).call()
                 const startTime = await StudentSocietyDAOContract.methods.getStartTime(i).call()
                 const duration = await StudentSocietyDAOContract.methods.getDuration(i).call()
-                ret.push({name: name, startTime: startTime, duration: duration, yes: yes, no:no})
+                ret.push({index: i, name: name, startTime: startTime, duration: duration, yes: yes, no:no})
             }
             setProposalList(ret)
         }
@@ -179,6 +208,7 @@ function App() {
                 <div className='give'>
                     <Input type="number" onChange={(e)=>setVoteAmount(Number(e.target.value))} placeholder="300" />
                     <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="AAA" />
+                    <Input onChange={(e)=>setDuration(Number(e.target.value))} placeholder="1000" />
                     <Button onClick={onGiveProposal}>提出建议</Button>
                 </div>
                 <div className='account'>
@@ -195,12 +225,10 @@ function App() {
                       bordered
                       dataSource={proposalList}
                       renderItem={item => (
-                        <List.Item>
-                            <p>{item.name}</p>
-                            <p>{item.startTime}</p>
-                            <p>{item.duration}</p>
-                            <p>{item.yes}</p>
-                            <p>{item.no}</p>
+                        <List.Item
+                          actions={[<Button onClick={onVote(true, item.index)}>支持</Button>,<Button onClick={onVote(false, item.index)}>反对</Button>]}
+                        >
+                            <p>{item.name} {item.startTime} {item.duration} {item.yes} {item.no}</p>
                         </List.Item>)}
                     />
                 </div>
