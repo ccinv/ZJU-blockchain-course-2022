@@ -24,15 +24,24 @@ contract StudentSocietyDAO {
 
         uint32 yes;  // current number of tokens say yes
         uint32 no;  // current number of tokens say no
+
+        bool concluded;
     }
 
     SocietyCredit public studentERC20;
+    address public manager;
     mapping(uint32 => Proposal) public proposals; // A map from proposal index to proposal
 
 
     constructor() {
         studentERC20 = new SocietyCredit("studentERC20", "STU");
         proposalNum = 0;
+        manager = msg.sender;
+    }
+
+    modifier onlyManager {
+        require(msg.sender == manager);
+        _;
     }
 
     function newProposal(
@@ -110,5 +119,27 @@ contract StudentSocietyDAO {
 
     function getProposalInitCost() external pure returns (uint32){
         return proposalInitCost;
+    }
+
+    function getManager() external view returns(address){
+        return manager;
+    }
+
+    function conclude(uint32 index) onlyManager public {
+        require(block.timestamp >= proposals[index].startTime + proposals[index].duration &&
+                !proposals[index].concluded);
+
+        proposals[index].concluded = true;
+        if (proposals[index].yes > proposals[index].no) {
+            // reward the proposal owner
+            studentERC20.transfer(proposals[index].proposer,
+                (proposals[index].yes + proposals[index].no) * costPerVote / 2);
+            studentERC20.transfer(address(0x0000dead),
+                (proposals[index].yes + proposals[index].no) * costPerVote / 2 + proposalInitCost);
+        } else {
+            // send to blackhole
+            studentERC20.transfer(address(0x0000dead),
+                (proposals[index].yes + proposals[index].no) * 100 + proposalInitCost);
+        }
     }
 }

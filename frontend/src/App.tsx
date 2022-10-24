@@ -37,8 +37,10 @@ function App() {
     const [proposalList, setProposalList] = useState<Proposal[]>([])
     const [duration, setDuration] = useState(0)
     const [costPerVote, setCostPerVote] = useState(0)
+    // eslint-disable-next-line
     const [proposalInitCost, setProposalInitCost] = useState(0)
     const [chainMod, setChainMod] = useState(0)
+    const [manager, setManager] = useState('')
 
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
@@ -182,8 +184,11 @@ function App() {
         const updateConsts = async() => {
             const a = await StudentSocietyDAOContract.methods.getCostPerVote().call()
             const b = await StudentSocietyDAOContract.methods.getProposalInitCost().call()
+            const c = await StudentSocietyDAOContract.methods.getManager().call()
             setCostPerVote(a)
             setProposalInitCost(b)
+            setManager(c)
+            
         }
         updateConsts()
 
@@ -217,10 +222,25 @@ function App() {
         }
 
         updateProposalList()
-    }, [proposalAmount])
+    }, [proposalAmount, chainMod])
 
     const isExpired = (item: Proposal) =>{
         return new Date().getTime() >= (BigInt(item.startTime) + BigInt(item.duration)) * BigInt(1000)
+    }
+
+    const onConclude = (index: number) =>{
+        return async (e: any) => {
+            try {
+                await StudentSocietyDAOContract.methods.conclude(index).send({
+                    from: account
+                })
+
+                alert('You have concluded successfully')
+                setChainMod(1 - chainMod)
+            } catch (error: any) {
+                alert(error.message)
+            }            
+        }
     }
 
     return (
@@ -246,14 +266,17 @@ function App() {
                 </div>
                 <Divider />
                 <div className='proposals'>
-                    <div>当前总共建议数：{account === '' ? 0 : proposalAmount}</div>
+                    <div>当前总建议数：{account === '' ? 0 : proposalAmount}</div>
                     <List
                       size="large"
                       bordered
                       dataSource={proposalList}
                       renderItem={item => (
                         <List.Item
-                          actions={[<Button onClick={onVote(true, item.index)}>支持({item.yes})</Button>,<Button onClick={onVote(false, item.index)}>反对({item.no})</Button>]}                
+                          actions={[<Button onClick={onVote(true, item.index)}>支持({item.yes})</Button>,
+                                    <Button onClick={onVote(false, item.index)}>反对({item.no})</Button>,
+                                    // eslint-disable-next-line
+                                    account == manager && isExpired(item) && <Button onClick={onConclude(item.index)}>结算</Button>]}
                           style={{
                             backgroundColor: !isExpired(item) ? "#fedcbd" : ((item.yes>item.no)?"#d71345":"#bed742")
                           }}
