@@ -4,7 +4,7 @@ import {
 import { useEffect, useState, createElement } from 'react';
 import { Button, Input, InputNumber, List, Divider, Space } from 'antd';
 import { 
-    web3, SocietyCreditContract, StudentSocietyDAOContract, StudentNFT 
+    web3, SocietyCreditContract, StudentSocietyDAOContract, StudentNFTContract 
 } from "./utils/contracts/contracts";
 // import * as moment from "momnent"
 import './App.css';
@@ -143,6 +143,9 @@ function App() {
 
         if (SocietyCreditContract && StudentSocietyDAOContract) {
             try {
+                if (voteString == ''){
+                    throw new Error("Content can't be empty")
+                }
                 await SocietyCreditContract.methods.approve(StudentSocietyDAOContract.options.address, voteAmount).send({
                     from: account
                 })
@@ -189,8 +192,8 @@ function App() {
 
         updateProposalAmount()
 
-        const updateNFTAmount = async() => {
-            const pa = await studentNFT.methods.balanceOf(account).call()
+        const updateNFTAmount = async(account: string) => {
+            const pa = await StudentNFTContract.methods.balanceOf(account).call()
             setNFTAmount(pa);
         }
 
@@ -204,6 +207,9 @@ function App() {
             
         }
         updateConsts()
+        if (account !== '') {
+            updateNFTAmount(account)
+        }
 
         const getAccountInfo = async () => {
             if (SocietyCreditContract) {
@@ -238,17 +244,23 @@ function App() {
     }, [proposalAmount, chainMod])
 
     useEffect(() => {
-        const updateNFT = async() => {
+        const updateNFT = async(account: string) => {
             let ret: NFT[] = []
-            const total = await studentNFT.methods.totalSupply().call()
+            const total = await StudentNFTContract.methods.totalSupply().call()
             for (var i = 0; i < total; ++i){
-                const id = await studentNFT.methods.tokenByIndex(i)
-                const avt = await studentNFT.methods.baseURI(id)
-                ret.push({index: id, avatar: avt})
+                const id = await StudentNFTContract.methods.tokenByIndex(i).call()
+                // const avt = await StudentNFTContract.methods.baseURI(id).call()
+                const owner = await StudentNFTContract.methods.ownerOf(id).call()
+                if (owner == account){
+                    ret.push({index: id, avatar: ""})
+                }
             }
             setNFTList(ret)
         }
-    })
+        if (account !== ''){
+            updateNFT(account)
+        }
+    }, [chainMod, account])
 
     const isExpired = (item: Proposal) =>{
         return new Date().getTime() >= (BigInt(item.startTime) + BigInt(item.duration)) * BigInt(1000)
@@ -284,8 +296,8 @@ function App() {
                     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
                     <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="建议内容" />
                     <Space>
-                    <InputNumber min={proposalInitCost} step={costPerVote} onChange={(e)=>setVoteAmount(Number(e.target.value))} suffix="tokens" placeholder="投入的代币数" />
-                    <InputNumber onChange={(e)=>setDuration(Number(e.target.value))} suffix="s" placeholder="有效时间" />
+                    <InputNumber min={proposalInitCost} step={costPerVote} onChange={(e)=>setVoteAmount(e!)} addonAfter="tokens" placeholder="投入的代币数" />
+                    <InputNumber min={1} onChange={(e)=>setDuration(e!)} addonAfter="s" placeholder="有效时间" />
                     <Button onClick={onGiveProposal}>提出建议</Button>
                     </Space>
                     </Space>
@@ -304,7 +316,7 @@ function App() {
                                     // eslint-disable-next-line
                                     account == manager && isExpired(item) && <Button onClick={onConclude(item.index)}>结算</Button>]}
                           style={{
-                            backgroundColor: !isExpired(item) ? "#fedcbd" : ((item.yes>item.no)?"#d71345":"#bed742")
+                            backgroundColor: !isExpired(item) ? "#fedcbd" : ((item.yes <= item.no)?"#d71345":"#bed742")
                           }}
                         >
                             <List.Item.Meta
@@ -321,10 +333,17 @@ function App() {
                       bordered
                       header={<div>拥有的NFT数：{account === '' ? 0 : NFTAmount}</div>}
                       dataSource={NFTList}
-                      renderItem={item => (){
-                        item.index
-                      }}
+                      renderItem={item => (
+                        <List.Item>
+                            <List.Item.Meta
+                              title={item.index}
+                            />
+                        </List.Item>)}
                     />
+                </div>
+                <Divider />
+                <div>
+                    by ccinv
                 </div>
           </div>
       </div>
