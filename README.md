@@ -31,7 +31,41 @@
 
 ## 项目运行截图
 
+- 未连接钱包时
 
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-29-15.png)
+
+- 连接钱包后
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-29-57.png)
+
+- 领取空投后
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-30-28.png)
+
+- 提出建议的界面
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-31-47.png)
+
+- 成功提出建议
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-32-11.png)
+
+- 成功投票
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-32-52.png)
+
+- 截止时间到，进入待结算状态
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-33-06.png)
+
+- 结算后，返还了一部分代币
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-33-20.png)
+
+- 三次成功的提案，获赠一个 NFT（一个数字）
+
+![](https://raw.githubusercontent.com/ccinv/ZJU-blockchain-course-2022/main/assets/Snipaste_2022-10-25_19-36-27.png)
 
 ## 参考内容
 
