@@ -9,6 +9,8 @@ async function main() {
 
     const SocietyCredit = await studentSocietyDAO.studentERC20()
     console.log(`SocietyCredit contract has been deployed successfully in ${SocietyCredit}`)
+    const StudentNFT = await studentSocietyDAO.studentNFT()
+    console.log(`StudentNFT contract has been deployed successfully in ${StudentNFT}`)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

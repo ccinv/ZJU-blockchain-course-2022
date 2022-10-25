@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "./SocietyCredit.sol";
+import "./StudentNFT.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -29,12 +30,16 @@ contract StudentSocietyDAO {
     }
 
     SocietyCredit public studentERC20;
+    StudentNFT public studentNFT;
+
     address public manager;
     mapping(uint32 => Proposal) public proposals; // A map from proposal index to proposal
+    mapping(address => uint32) public passNum;
 
 
     constructor() {
         studentERC20 = new SocietyCredit("studentERC20", "STU");
+        studentNFT = new StudentNFT("studentNFT", "STF");
         proposalNum = 0;
         manager = msg.sender;
     }
@@ -42,6 +47,22 @@ contract StudentSocietyDAO {
     modifier onlyManager {
         require(msg.sender == manager);
         _;
+    }
+
+    function rand()
+        public
+        view
+        returns(uint256)
+    {
+        uint256 seed = uint256(keccak256(abi.encodePacked(
+            block.timestamp + block.difficulty +
+            ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (block.timestamp)) +
+            block.gaslimit + 
+            ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (block.timestamp)) +
+            block.number
+        )));
+
+        return (seed - ((seed / 1000) * 1000));
     }
 
     function newProposal(
@@ -136,6 +157,12 @@ contract StudentSocietyDAO {
                 (proposals[index].yes + proposals[index].no) * costPerVote / 2);
             studentERC20.transfer(address(0x0000dead),
                 (proposals[index].yes + proposals[index].no) * costPerVote / 2 + proposalInitCost);
+            passNum[proposals[index].proposer] ++;
+            if (passNum[proposals[index].proposer] == 3){
+                passNum[proposals[index].proposer] = 0;
+                // issue a NFT
+                studentNFT.mint(proposals[index].proposer, rand());
+            }
         } else {
             // send to blackhole
             studentERC20.transfer(address(0x0000dead),

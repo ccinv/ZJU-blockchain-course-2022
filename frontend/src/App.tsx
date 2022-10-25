@@ -2,8 +2,10 @@ import {
     FieldTimeOutlined, ArrowRightOutlined,
 } from '@ant-design/icons';
 import { useEffect, useState, createElement } from 'react';
-import { Button, Input, List, Divider, Space } from 'antd';
-import { web3, SocietyCreditContract, StudentSocietyDAOContract } from "./utils/contracts/contracts";
+import { Button, Input, InputNumber, List, Divider, Space } from 'antd';
+import { 
+    web3, SocietyCreditContract, StudentSocietyDAOContract, StudentNFT 
+} from "./utils/contracts/contracts";
 // import * as moment from "momnent"
 import './App.css';
 
@@ -17,6 +19,10 @@ interface Proposal {
     duration: number;
     yes:number;
     no:number;
+}
+interface NFT {
+    avatar: string;
+    index: number;
 }
 
 const IconText = ({ start, duration }: { start: number; duration:number }) => (
@@ -41,6 +47,8 @@ function App() {
     const [proposalInitCost, setProposalInitCost] = useState(0)
     const [chainMod, setChainMod] = useState(0)
     const [manager, setManager] = useState('')
+    const [NFTAmount, setNFTAmount] = useState(0)
+    const [NFTList, setNFTList] = useState<NFT[]>([])
 
     useEffect(() => {
         // 初始化检查用户是否已经连接钱包
@@ -181,6 +189,11 @@ function App() {
 
         updateProposalAmount()
 
+        const updateNFTAmount = async() => {
+            const pa = await studentNFT.methods.balanceOf(account).call()
+            setNFTAmount(pa);
+        }
+
         const updateConsts = async() => {
             const a = await StudentSocietyDAOContract.methods.getCostPerVote().call()
             const b = await StudentSocietyDAOContract.methods.getProposalInitCost().call()
@@ -224,6 +237,19 @@ function App() {
         updateProposalList()
     }, [proposalAmount, chainMod])
 
+    useEffect(() => {
+        const updateNFT = async() => {
+            let ret: NFT[] = []
+            const total = await studentNFT.methods.totalSupply().call()
+            for (var i = 0; i < total; ++i){
+                const id = await studentNFT.methods.tokenByIndex(i)
+                const avt = await studentNFT.methods.baseURI(id)
+                ret.push({index: id, avatar: avt})
+            }
+            setNFTList(ret)
+        }
+    })
+
     const isExpired = (item: Proposal) =>{
         return new Date().getTime() >= (BigInt(item.startTime) + BigInt(item.duration)) * BigInt(1000)
     }
@@ -258,18 +284,18 @@ function App() {
                     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
                     <Input onChange={(e)=>setVoteString(e.target.value)} placeholder="建议内容" />
                     <Space>
-                    <Input type="number" onChange={(e)=>setVoteAmount(Number(e.target.value))} suffix="tokens" placeholder="投入的代币数" />
-                    <Input onChange={(e)=>setDuration(Number(e.target.value))} suffix="s" placeholder="有效时间" />
+                    <InputNumber min={proposalInitCost} step={costPerVote} onChange={(e)=>setVoteAmount(Number(e.target.value))} suffix="tokens" placeholder="投入的代币数" />
+                    <InputNumber onChange={(e)=>setDuration(Number(e.target.value))} suffix="s" placeholder="有效时间" />
                     <Button onClick={onGiveProposal}>提出建议</Button>
                     </Space>
                     </Space>
                 </div>
                 <Divider />
                 <div className='proposals'>
-                    <div>当前总建议数：{account === '' ? 0 : proposalAmount}</div>
                     <List
                       size="large"
                       bordered
+                      header={<div>当前总建议数：{account === '' ? 0 : proposalAmount}</div>}
                       dataSource={proposalList}
                       renderItem={item => (
                         <List.Item
@@ -286,6 +312,18 @@ function App() {
                               description={<IconText start={item.startTime} duration={item.duration}/>}
                             />
                         </List.Item>)}
+                    />
+                </div>
+                <Divider />
+                <div className="NFTs">
+                    <List
+                      size="large"
+                      bordered
+                      header={<div>拥有的NFT数：{account === '' ? 0 : NFTAmount}</div>}
+                      dataSource={NFTList}
+                      renderItem={item => (){
+                        item.index
+                      }}
                     />
                 </div>
           </div>
