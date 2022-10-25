@@ -11,6 +11,7 @@ contract StudentSocietyDAO {
 
     uint32 constant costPerVote = 100;
     uint32 constant proposalInitCost = 300;
+    uint32 constant maxVoteTimes = 5;
 
     uint32 public proposalNum;
 
@@ -26,6 +27,7 @@ contract StudentSocietyDAO {
         uint32 yes;  // current number of tokens say yes
         uint32 no;  // current number of tokens say no
 
+        mapping(address => uint32) times;
         bool concluded;
     }
 
@@ -72,6 +74,8 @@ contract StudentSocietyDAO {
     ) public returns (uint32 proposalIndex){
         if (amount < proposalInitCost)
             revert('insuffient token to make a proposal');
+        if (amount > proposalInitCost + maxVoteTimes * costPerVote)
+            revert('too many votes');
 
         studentERC20.transferFrom(msg.sender, address(this), amount);
         proposalNum = proposalNum + 1;
@@ -82,6 +86,7 @@ contract StudentSocietyDAO {
         proposals[proposalNum].startTime = block.timestamp;
         proposals[proposalNum].duration = duration;
         proposals[proposalNum].name = name;
+        proposals[proposalNum].times[msg.sender] = proposals[proposalNum].yes;
 
         emit ProposalInitiated(proposalNum);
         return proposalNum;
@@ -97,6 +102,8 @@ contract StudentSocietyDAO {
         if (index > proposalNum ||
             proposals[index].startTime + proposals[index].duration < block.timestamp)
             revert('the proposal is not found or expired');
+        if (proposals[index].times[msg.sender] + amount / costPerVote > maxVoteTimes)
+            revert('you have voted too many times');
 
         studentERC20.transferFrom(msg.sender, address(this), amount);
         if (support){
@@ -104,6 +111,7 @@ contract StudentSocietyDAO {
         } else {
             proposals[index].no += amount / costPerVote;
         }
+        proposals[index].times[msg.sender] += amount / costPerVote;
     }
 
     function getProposalNum() external view returns (uint256) {

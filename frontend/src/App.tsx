@@ -284,7 +284,8 @@ function App() {
     return (
       <div className='App'>
           <div className='main'>
-                <h1>社团组织治理</h1>
+                <h1>Wevote</h1>
+                <h2>社团组织治理</h2>
                 <div className='account'>
                     {account === '' && <Button onClick={onClickConnectWallet}>连接Metamask钱包</Button>}
                     <div>当前用户：{account === '' ? '无用户连接' : account}</div>
