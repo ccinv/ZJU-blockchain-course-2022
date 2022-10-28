@@ -71,6 +71,6 @@
 
 - 课程Demo https://github.com/LBruyne/blockchain-course-demos
 - Decentralized Autonomous Organization (DAO) Framework https://github.com/blockchainsllc/DAO
-- Solidity - Generate unpredictable random number that does not depend on inputhttps://stackoverflow.com/questions/58188832/solidity-generate-unpredictable-random-number-that-does-not-depend-on-input
+- Solidity - Generate unpredictable random number that does not depend on input https://stackoverflow.com/questions/58188832/solidity-generate-unpredictable-random-number-that-does-not-depend-on-input
 - ERC721 OpenZeppelin Docs https://docs.openzeppelin.com/contracts/3.x/api/token/erc721
 - totalsupply() is not a function openzeppelin contracts https://stackoverflow.com/questions/68810515/totalsupply-is-not-a-function-openzeppelin-contracts
